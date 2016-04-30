@@ -1,0 +1,165 @@
+<style media="screen">
+  body{
+    text-align: center;
+  }
+
+  h1:not(:last-child){
+    margin-bottom: 4em;
+    padding-bottom: 1em;
+    border-bottom: 1px solid black;
+    background-color: white;
+    box-shadow: 0 36px 36px -24px black;
+  }
+
+  .deprecated{
+    color: grey;
+    text-decoration: line-through;
+  }
+
+  svg{
+    margin: 1em;
+    width: 40em;
+    border: 1px dotted black;
+  }
+</style>
+<h1><%= link_to "Back to Update", "/update" %></h1>
+
+<svg id="triangle-1" viewBox = "-0.5 -0.5 1 1">
+  <% triangle = Engine::Plan::Builder.triangle x: 0.0, y: 0.0, edge: 0.5 %>
+</svg>
+<script type="text/javascript">
+  var origin = new Point(0.0, 0.0, 0.0);
+  var vector = new Vector(origin, 0.0, 0.0, 1.0);
+  var triangle = <%= triangle.to_js svg:'triangle-1' %>
+
+  // var animation = triangle.animate();
+  // animation.rotateForever(vector, TAU/1024);
+  // animation.start();
+  triangle.animation().rotate(vector, TAU, 4000, {repeat: 'always'});
+  triangle.animation().start();
+</script>
+
+<h1>
+  <span class="deprecated">Triangle (x: 0.0, y: 0.0, edge: 0.5) + JS[rotateForever(0,0,0 -> 0,0,1, TAU/1024)]</span><br/>
+  Triangle (x: 0.0, y: 0.0, edge: 0.5) + JSrotate(0,0,0 -> 0,0,1, TAU, 4000ms, always)
+</h1>
+
+<svg id="triangle-2" viewBox = "-0.5 -0.5 1 1">
+  <% triangle2 = Engine::Plan::Builder.triangle x: 0.0, y: 0.0, edge: 0.625 %>
+</svg>
+<div id="triangle-2-controls">
+  <button id="start">start</button>
+  <button id="stop">stop</button>
+</div>
+<script type="text/javascript">
+  var origin = new Point(0.0, 0.0, 0.0);
+  var vector = new Vector(origin, 0.0, 0.0, 1.0);
+  var triangle2 = <%= triangle2.to_js svg:'triangle-2' %>
+
+  // triangle2.animation().rotateForever(vector, TAU/1024);
+  triangle2.animation().rotate(vector, TAU, 4000);
+</script>
+
+<h1>
+  <span class="deprecated">Triangle (x: 0.0, y: 0.0, edge: 0.625) + JS[rotateForever(0,0,0 -> 0,0,1, TAU/1024)] + start-stop</span><br/>
+  Triangle (x: 0.0, y: 0.0, edge: 0.625) + JSrotate(0,0,0 -> 0,0,1, TAU, 4000ms) + start-stop
+</h1>
+
+<!-- <svg id="triangle-3" viewBox = "-0.5 -0.5 1 1">
+  <% triangle3 = Engine::Plan::Builder.triangle x: 0.0, y: 0.0, edge: 0.625 %>
+</svg>
+<div id="triangle-3-controls">
+  <button id="start">start</button>
+  <button id="stop">stop</button>
+</div>
+<script type="text/javascript">
+  var triangle3 = <%= triangle3.to_js svg:'triangle-3' %>
+
+  triangle3.animation().translateForever(0.0125, 0.0, 0.0);
+</script>
+
+<h1>Triangle (x: 0.0, y: 0.0, edge: 0.625) + JS[translateForever(0.25,0,0)] + start-stop</h1> -->
+
+<svg id="triangle-4" viewBox = "-0.5 -0.5 1 1">
+  <% triangle4 = Engine::Plan::Builder.triangle x: -0.5, y: 0.0, edge: 0.625 %>
+</svg>
+<div id="triangle-4-controls">
+  <button id="start">start</button>
+  <button id="stop">stop</button>
+</div>
+<script type="text/javascript">
+  var triangle4 = <%= triangle4.to_js svg:'triangle-4' %>
+
+  triangle4.animation().translate(1, 0.0, 0.0, 1000);
+</script>
+
+<h1>Triangle (x: -0.5, y: 0.0, edge: 0.625) + JS[translate(1,0,0 - 1000ms)] + start-pause</h1>
+
+<svg id="triangle-5" viewBox = "-0.5 -0.5 1 1">
+  <% triangle5 = Engine::Plan::Builder.triangle x: -0.25, y: 0.0, edge: 0.0625 %>
+</svg>
+<div id="triangle-5-controls">
+  <button id="start">start</button>
+  <button id="stop">stop</button>
+</div>
+<script type="text/javascript">
+  var triangle5 = <%= triangle5.to_js svg:'triangle-5' %>
+
+  triangle5.animation().translate(0.5, 0.0, 0.0, 1000, {repeat: 4});
+</script>
+
+<h1>Triangle (x: -0.25, y: 0.0, edge: 0.0625) + JS[translate(0.5,0,0 - 1000ms - 4.times)] + start-stop</h1>
+
+<svg id="triangle-6" viewBox = "-0.5 -0.5 1 1">
+  <% triangle6 = Engine::Plan::Builder.triangle x: -0.5, y: 0.0, edge: 0.5 %>
+</svg>
+<div id="triangle-6-controls">
+  <button id="start">start</button>
+  <button id="stop">stop</button>
+</div>
+<script type="text/javascript">
+  var triangle6 = <%= triangle6.to_js svg:'triangle-6' %>
+
+  triangle6.animation().translate(1.0, 0.0, 0.0, 450, {repeat: 'always'});
+</script>
+
+<h1>Triangle (x: -0.5, y: 0.0, edge: 0.5) + JS[translate(1,0,0 - 450ms - infinite.times)] + start-stop</h1>
+
+<svg id="triangle-7" viewBox = "-0.5 -0.5 1 1">
+  <% triangle7 = Engine::Plan::Builder.triangle x: 0.0, y: 0.0, edge: 0.625 %>
+</svg>
+<div id="triangle-7-controls">
+  <button id="play">play</button>
+  <button id="pause">pause</button>
+</div>
+<script type="text/javascript">
+  var origin = new Point(0.0, 0.0, 0.0);
+  var vector = new Vector(origin, 0.0, 0.0, 1.0);
+  var triangle7 = <%= triangle7.to_js svg:'triangle-7' %>
+
+  // triangle2.animation().rotateForever(vector, TAU/1024);
+  triangle7.animation().rotate(vector, TAU, 4000, {repeat: 'always'});
+  triangle7.animation().start();
+</script>
+
+<h1>
+  Triangle (x: 0.0, y: 0.0, edge: 0.625) + JSrotate(0,0,0 -> 0,0,1, TAU, 4000ms, always) + pause-play
+</h1>
+
+<svg id="triangle-8" viewBox = "-0.5 -0.5 1 1">
+  <% triangle8 = Engine::Plan::Builder.triangle x: -0.5, y: 0.0, edge: 0.0625 %>
+</svg>
+<div id="triangle-8-controls">
+  <button id="start">start</button>
+  <button id="stop">stop</button>
+  <button id="reset">reset</button>
+</div>
+<script type="text/javascript">
+  var triangle8 = <%= triangle8.to_js svg:'triangle-8' %>
+
+  triangle8.animation().translate(0.25, 0.0, 0.0, 1000, {additive: true});
+</script>
+
+<h1>Triangle (x: -0.5, y: 0.0, edge: 0.0625) + JS[translate(0.25,0,0 - 1000ms - additive)] + start-stop-reset</h1>
+
+<h1><%= link_to "Back to Update", "/update" %></h1>

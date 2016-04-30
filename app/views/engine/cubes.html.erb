@@ -1,0 +1,149 @@
+<style media="screen">
+  body{
+    text-align: center;
+  }
+
+  h1:not(:last-child){
+    margin-bottom: 4em;
+    padding-bottom: 1em;
+    border-bottom: 1px solid black;
+    background-color: white;
+    box-shadow: 0 36px 36px -24px black;
+  }
+
+  svg{
+    margin: 1em;
+    width: 40em;
+    border: 1px dotted black;
+  }
+</style>
+<h1><%= link_to "Back to Update", "/update" %></h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -1.0, edge: 0.5 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -1.0, edge: 0.5, perspective: 5.0)</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -1.0, edge: 0.5 %>
+  <%= cube.to_svg perspective: 4.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -1.0, edge: 0.5, perspective: 4.0)</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -1.0, edge: 0.5 %>
+  <%= cube.to_svg perspective: 3.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -1.0, edge: 0.5, perspective: 3.0)</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -1.0, edge: 0.5 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -1.0, edge: 0.5, perspective: 5.0)</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -1.0, edge: 0.5 %>
+  <% cube.translate x: 0.1, y: 0.1, z: -1.0 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -2.5, edge: 0.5, perspective: 5.0) + translate x: 0.1, y: 0.1, z: -1</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -2.5, edge: 0.5 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -2.5, edge: 0.5, perspective: 5.0)</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -2.5, edge: 0.5 %>
+  <% cube.rotate vector: Engine::Solid::Vector.new(x: 0.0, y: 0.0, z: 1.0, origin: Engine::Solid::Point.new(x: 0.0, y: 0.0, z: -2.5)), angle: TAU/8 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -2.5, edge: 0.5, perspective: 5.0) + rotate x: 0.0, y: 0.0, z: 1.0, angle: TAU/8</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -2.5, edge: 0.5 %>
+  <% cube.rotate vector: Engine::Solid::Vector.new(x: 0.0, y: 1.0, z: 0.0, origin: Engine::Solid::Point.new(x: 0.0, y: 0.0, z: -2.5)), angle: TAU/16 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -2.5, edge: 0.5, perspective: 5.0) + rotate x: 0.0, y: 1.0, z: 0.0, angle: TAU/16</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -2.5, edge: 0.5 %>
+  <% cube.rotate vector: Engine::Solid::Vector.new(x: 0.0, y: 1.0, z: 0.0, origin: Engine::Solid::Point.new(x: 0.0, y: 0.0, z: -2.5)), angle: TAU/8 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -2.5, edge: 0.5, perspective: 5.0) + rotate x: 0.0, y: 1.0, z: 0.0, angle: 2TAU/16</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -2.5, edge: 0.5 %>
+  <% cube.rotate vector: Engine::Solid::Vector.new(x: 0.0, y: 1.0, z: 0.0, origin: Engine::Solid::Point.new(x: 0.0, y: 0.0, z: -2.5)), angle: 3*TAU/16 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -2.5, edge: 0.5, perspective: 5.0) + rotate x: 0.0, y: 1.0, z: 0.0, angle: 3TAU/16</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -2.5, edge: 0.5 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -2.5, edge: 0.5, perspective: 5.0)</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -2.5, edge: 0.5 %>
+  <% cube.rotate vector: Engine::Solid::Vector.new(x: 0.0, y: 1.0, z: 0.0, origin: Engine::Solid::Point.new(x: -0.25, y: 0.0, z: -2.25)), angle: TAU/16 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -2.5, edge: 0.5, perspective: 5.0) + rotate [0,1,0, center:[-0.25, 0, -2.25]], angle: TAU/16</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -2.5, edge: 0.5 %>
+  <% cube.rotate vector: Engine::Solid::Vector.new(x: 0.0, y: 1.0, z: 0.0, origin: Engine::Solid::Point.new(x: -0.25, y: 0.0, z: -2.25)), angle: TAU/8 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -2.5, edge: 0.5, perspective: 5.0) + rotate [0,1,0, center:[-0.125, 0, -2.375]], angle: 2TAU/16</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -2.5, edge: 0.5 %>
+  <% cube.rotate vector: Engine::Solid::Vector.new(x: 0.0, y: 1.0, z: 0.0, origin: Engine::Solid::Point.new(x: -0.25, y: 0.0, z: -2.25)), angle: 3*TAU/16 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -2.5, edge: 0.5, perspective: 5.0) + rotate [0,1,0, center:[-0.125, 0, -2.375]], angle: 3TAU/16</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -2.5, edge: 0.5 %>
+  <% cube.rotate vector: Engine::Solid::Vector.new(x: 0.0, y: 1.0, z: 0.0, origin: Engine::Solid::Point.new(x: -0.25, y: 0.0, z: -2.25)), angle: TAU/4 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -2.5, edge: 0.5, perspective: 5.0) + rotate [0,1,0, center:[-0.125, 0, -2.375]], angle: 4TAU/16</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -2.5, edge: 0.5 %>
+  <% cube.rotate vector: Engine::Solid::Vector.new(x: 0.0, y: 1.0, z: 0.0, origin: Engine::Solid::Point.new(x: -0.25, y: 0.0, z: -2.25)), angle: 5*TAU/16 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -2.5, edge: 0.5, perspective: 5.0) + rotate [0,1,0, center:[-0.125, 0, -2.375]], angle: 5TAU/16</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -2.5, edge: 0.5 %>
+  <% cube.rotate vector: Engine::Solid::Vector.new(x: 1.0, y: 0.0, z: 0.0, origin: Engine::Solid::Point.new(x: 0.0, y: 0.0, z: -2.5)), angle: TAU/16 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -2.5, edge: 0.5, perspective: 5.0) + rotate [1,0,0, center:[0, 0, -2.5]], angle: TAU/16</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -2.5, edge: 0.5 %>
+  <% cube.rotate vector: Engine::Solid::Vector.new(x: 1.0, y: 1.0, z: 0.0, origin: Engine::Solid::Point.new(x: 0.0, y: 0.0, z: -2.5)), angle: 15*TAU/16 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -2.5, edge: 0.5, perspective: 5.0) + rotate x: 1.0, y: 1.0, z: 0.0, angle: 15TAU/16</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -2.5, edge: 0.5 %>
+  <% cube.rotate vector: Engine::Solid::Vector.new(x: 1.0, y: 1.0, z: 1.0, origin: Engine::Solid::Point.new(x: 0.0, y: 0.0, z: -2.5)), angle: TAU/16 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -2.5, edge: 0.5, perspective: 5.0) + rotate x: 1.0, y: 1.0, z: 1.0, angle: TAU/16</h1>
+
+<h1><%= link_to "Back to Update", "/update" %></h1>

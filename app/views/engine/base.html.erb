@@ -1,0 +1,1726 @@
+<%
+
+cPoint = Class.new do
+
+  # note: rx == phi == φ, ry == theta == θ
+  attr_accessor :rx, :ry, :tz
+  attr_accessor :x, :y, :z
+  attr_accessor :px, :py
+
+
+  def initialize rx, ry, tz
+    @rx, @ry, @tz = rx, ry, tz
+
+    to_cartesien
+    to_projection
+    to_spherical
+  end
+
+
+
+
+  def to_spherical
+    @rx = Math::acos(@z/Math::sqrt( @x**2 + @y**2 + @z**2 ))
+    @ry = if @y > 0
+      Math::acos(@x/Math::sqrt(@x**2 + @y**2))
+    else
+      2*Math::PI - Math::acos(@x/Math::sqrt(@x**2 + @y**2))
+    end
+    @tz = Math::sqrt( @x**2 + @y**2 + @z**2 ) # the rayon 132 is missing somewhere here
+
+
+
+    @rx = 0 if @rx.nan?
+    @ry = 0 if @ry.nan?
+  #  @tz = 0 if @tz < 0.1 && @tz > -0.1
+  end
+
+
+  def to_cartesien(rayon = 132) #rename to cartesian
+    @x = rayon * Math::sin(rx) * Math::cos(ry)
+    @y = rayon * Math::sin(rx) * Math::sin(ry)
+    @z = rayon * Math::cos(rx)
+
+
+    @x = 0 if @x < 0.1 && @x > -0.1
+    @y = 0 if @y < 0.1 && @y > -0.1
+    @z = 0 if @z < 0.1 && @z > -0.1
+  end
+
+
+  def to_projection(perspective = 264) #perspective must be > rayon
+    camera_z = (z + perspective).to_f
+
+    perspective_ratio = (camera_z/perspective)
+
+# TODO: perspective is not usable, as we have to order shapes before drawing if we want to use perspective
+# perspective of "1" is like looking from very very far
+# cause it means, 132+perspective/perspective == 1, means perspective == infinite
+perspective_ratio = 1.0
+
+    @px = x * perspective_ratio
+    @py = y * perspective_ratio
+
+    #binding.pry
+  end
+
+  def to_s
+    %Q{
+      orig : [#{rx}, #{ry}, #{tz}]
+      cart : [#{x}, #{y}, #{z}]
+      proj : [#{px}, #{py}]
+    }
+  end
+
+
+
+
+  #rotations
+  # Y
+  # |
+  # |
+  #X|_____ Z
+  #
+
+
+
+  ########
+  # !, on svg
+
+  # X
+  # |
+  # |
+  #Y|_____Z
+  #
+  #
+
+
+
+  def rotateZ!(rad)
+# O < rad < PI/2
+
+
+    nx = Math::cos(rad)*x - Math::sin(rad)*y + 0*z
+    ny = Math::sin(rad)*x + Math::cos(rad)*y + 0*z
+    nz = 0*x + 0*y + 1*z
+
+
+#    nry = ry + (rad*Math::cos(rx)*Math::sin(rx))
+
+
+
+@x = nx
+@y = ny
+@z = nz
+
+to_spherical
+#to_cartesien
+    to_projection
+  end
+
+  def rotateY!(rad)
+# O < rad < PI/2
+
+
+    nx = Math::cos(rad)*x + 0*y + Math::sin(rad)*z
+    ny = 0*x + 1*y + 0*z
+    nz = -Math::sin(rad)*x + 0*y + Math::cos(rad)*z
+
+
+#    nry = ry + (rad*Math::cos(rx)*Math::sin(rx))
+
+
+
+@x = nx
+@y = ny
+@z = nz
+
+to_spherical
+#to_cartesien
+    to_projection
+  end
+
+
+
+  #is ok
+  # old, using spherical coord
+  # this is the same as Zrotation using cartesian
+  # def rotateY!(rad)
+  #   @ry += rad
+  #   @ry = @ry % (2*Math::PI)
+  #
+  #
+  #   to_cartesien
+  #   to_projection
+  # end
+
+
+#not working
+  def rotateX!(rad)
+#http://stackoverflow.com/questions/5278417/rotating-body-from-spherical-coordinates
+    #@rx = Math::atan(Math::tan(@rx) * Math::cos(rad) - (Math::cos(@ry) / Math::sin(@ry)) * Math::sin(rad) * (1 / Math::cos(@rx)))
+    #@ry = Math::acos(Math::sin(@ry) * Math::sin(@rx) * Math::sin(rad) + Math::cos(@ry) * Math::cos(rad))
+
+
+    nx = 1*x + 0*y + 0*z
+    ny = 0*x + Math::cos(rad)*y - Math::sin(rad)*z
+    nz = 0*x + Math::sin(rad)*y + Math::cos(rad)*z
+
+    @x = nx
+    @y = ny
+    @z = nz
+
+    to_spherical
+    #to_cartesien
+    to_projection
+  end
+
+
+
+  def ==(pt)
+    rx == pt.rx && ry == pt.ry && tz == pt.tz
+  end
+
+  def <=>(pt)
+    if (rx <=> pt.rx) != 0
+      rx <=> pt.rx
+    elsif (ry <=> pt.ry) != 0
+      ry <=> pt.ry
+    else
+      tz <=> pt.tz
+    end
+  end
+
+
+
+  def to_v
+    [px, py]
+  end
+
+
+
+  def near(pt, triangles)
+
+    triangles.select{|t|
+      t.points.include?(pt) && t.points.include?(self)
+    }.present?
+
+  end
+
+
+end
+
+
+
+
+
+
+cTriangle = Class.new do
+
+
+  def self.cPoint= val
+    @@cPoint = val
+  end
+  def cPoint
+    @@cPoint
+  end
+
+  def cTriangle
+    self.class
+  end
+
+
+
+
+  attr_accessor :points
+
+  def initialize points
+    @points = points
+  end
+
+  def to_svg
+
+    #for backface hidden
+    return nil if points.select{|pt| pt.z >= 0}.blank?
+
+
+    #"<path d='#{ svg_path }' fill='red' opacity='0.5' stroke='blue' stroke-width='1' />".html_safe
+    "<path d='#{ svg_path }' fill='transparent' stroke='blue' stroke-width='1' />".html_safe
+  end
+
+  def svg_path
+    svg_path_backface_hidden
+  end
+
+
+  def svg_path_backface_visible
+    "M " << points.map{ |p| "#{p.px + 132} #{p.py + 132}" }.join(" L ") << " Z" #le +132 est là pour center le dessin
+  end
+
+  def svg_path_backface_hidden
+    pts = points.select{|pt| pt.z >= 0}
+
+    "M " << pts.map{ |p| "#{p.px + 132} #{p.py + 132}" }.join(" L ") << " Z" #le +132 est là pour center le dessin
+  end
+
+
+  # not used - I think not working
+  def new_divide
+    a,b,c = points
+
+
+    rxs = [a.rx, b.rx, c.rx].uniq
+    rx1 = rxs.min
+    rx2 = rxs.max
+
+    phi = rx2 - rx1
+
+    nphi = phi/2
+
+    cry = c.ry
+    cry = 2*Math::PI if cry == 0
+
+    rys = [a.ry, b.ry, c.ry]
+    ry1 = rys.min
+    ry2 = rys.max
+
+    path1 = ry2 - ry1
+    path2 = (ry1 + 2*Math::PI) - ry2
+
+    if path2 < path1
+
+      tmp = ry1
+      ry1 = ry2
+      ry2 = ry1+2*Math::PI
+
+      path1 = path2
+    end
+
+    theta = path1
+
+
+
+    xtheta = theta/4
+    ntheta = theta/2
+
+    ab = cPoint.new(rx1+nphi, ry1+xtheta, 1)
+    bc = cPoint.new(rx2, ry1+ntheta, 1)
+    ca = cPoint.new(rx1+nphi, ry2-xtheta, 1)
+
+    [
+      cTriangle.new([a, ab, ca]),
+      cTriangle.new([ab, b, bc]),
+      cTriangle.new([ca, bc, c]),
+      cTriangle.new([ab, bc, ca])
+    ]
+  end
+
+
+
+
+
+
+  def divide
+
+
+    a, b, c = points
+
+
+#    ab = point_between a, b
+#    bc = point_between b, c
+#    ca = point_between c, a
+
+
+    ab = custom_midpoint a, b
+    bc = custom_midpoint b, c
+    ca = custom_midpoint c, a
+
+
+    [
+      cTriangle.new([a, ab, ca]),
+      cTriangle.new([b, ab, bc]),
+      cTriangle.new([c, bc, ca]),
+      cTriangle.new([ab, bc, ca])
+    ]
+
+  end
+
+
+
+
+  # by the scary internet
+  # not working
+  def midpoint p1, p2
+
+    rx = (p1.tz * Math::sin(p1.rx) * Math::cos(p1.ry) + p2.tz * Math::sin(p2.rx) * Math::cos(p2.ry)) / 2
+    ry = (p1.tz * Math::sin(p1.rx) * Math::sin(p1.ry) + p2.tz * Math::sin(p2.rx) * Math::sin(p2.ry)) / 2
+    tz = (p1.tz * Math::cos(p1.rx) + p2.tz * Math::cos(p2.rx)) / 2
+
+    cPoint.new(rx, ry, tz)
+  end
+
+#by me, using cartesian coord
+  def custom_midpoint p1, p2
+    x = [p1.x, p2.x].sum / 2
+    y = [p1.y, p2.y].sum / 2
+    z = [p1.z, p2.z].sum / 2
+
+    pt = cPoint.new(0,0,0)
+    pt.x = x
+    pt.y = y
+    pt.z = z
+
+    pt.to_spherical
+    pt.to_projection
+
+#=begin
+    # replace on top of sphere
+    pt.tz = 1
+    pt.to_cartesien
+    pt.to_projection
+#=end
+    pt
+  end
+
+
+
+
+
+
+# by me
+# not perfect, must be missing smthng
+  def point_between p1, p2
+
+    rxs = [p1.rx, p2.rx]
+
+    rx1 = rxs.min
+    rx2 = rxs.max
+
+
+
+    rx = rx1 + (dist(rx1, rx2) / 2)
+
+
+
+
+
+
+
+
+
+    rys = [p1.ry, p2.ry]
+
+    ry1 = rys.min
+    ry2 = rys.max
+
+
+    # execption for rx, north & south
+    if rx1 == 0 || rx1 == Math::PI
+      ry1 = ry2
+    end
+
+    if rx2 == 0 || rx2 == Math::PI
+      ry2 = ry1
+    end
+
+    ry = ry1 + (dist(ry1, ry2) / 2)
+
+
+
+    cPoint.new(rx, ry, 1)
+  end
+
+
+  def dist min, max
+
+
+
+    path1 = max - min
+    path2 = (min + 2*Math::PI) - max
+
+    shorter_path = [path1, path2].min
+
+
+
+
+
+  end
+
+
+  attr_accessor :in_a_shape
+
+  def find_near triangles
+
+    triangles.select{|t|
+      intersect(points, t.points).size == 2
+    }
+
+  end
+
+  def ==(triangle)
+    triangle.points.sort == points.sort
+  end
+
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+cSquare = Class.new do
+
+
+  def self.cPoint= val
+    @@cPoint = val
+  end
+  def cPoint
+    @@cPoint
+  end
+
+  def cSquare
+    self.class
+  end
+
+
+
+
+  attr_accessor :points, :center
+  attr_accessor :id
+  def initialize points
+    @points = points
+
+    a, b, c, d = points
+
+    ab = custom_midpoint a, b
+    cd = custom_midpoint c, d
+
+    center = custom_midpoint ab, cd
+    @center = center
+
+    @id = object_id
+  end
+
+  def to_svg
+
+    #for backface hidden
+    return nil if points.select{|pt| pt.z >= 0}.blank?
+
+
+    #"<path d='#{ svg_path }' fill='red' opacity='0.5' stroke='blue' stroke-width='1' />".html_safe
+    "<path d='#{ svg_path }' fill='transparent' stroke='blue' stroke-width='1' />".html_safe
+  end
+
+  def svg_path
+    svg_path_backface_hidden
+  end
+
+
+  def svg_path_backface_visible
+    "M " << points.map{ |p| "#{p.px + 132} #{p.py + 132}" }.join(" L ") << " Z" #le +132 est là pour center le dessin
+  end
+
+  def svg_path_backface_hidden
+    pts = points.select{|pt| pt.z >= 0}
+
+    "M " << pts.map{ |p| "#{p.px + 132} #{p.py + 132}" }.join(" L ") << " Z" #le +132 est là pour center le dessin
+  end
+
+
+  def to_svg_and_js
+    #return nil if points.select{|pt| pt.z >= 0}.blank?
+
+    "<path object_id='#{id}' d='#{ svg_path_backface_visible }' fill='transparent' stroke='blue' stroke-width='1' />".html_safe
+  end
+
+  def to_js
+    {id: id, points: points.map{|pt| {x:pt.x, y:pt.y, z:pt.z} } }.to_json
+
+  end
+
+
+
+  # not cool, working but not cool
+  # and not working fully, size of squares are not calculated
+  def to_css_3d
+
+    nrx = Math::PI/2 - center.rx
+
+    nrx = 0 if nrx < 0.1 && nrx > -0.1
+
+    "<div class='point' style='transform: rotateY(#{ center.ry }rad) rotateX(#{ nrx }rad) translateZ(#{ center.tz * 132 }px);'>
+    </div>".html_safe
+
+  end
+
+
+
+
+  def divide
+
+
+    a, b, c, d = points
+
+
+#    ab = point_between a, b
+#    bc = point_between b, c
+#    ca = point_between c, a
+
+
+    ab = custom_midpoint a, b
+    bc = custom_midpoint b, c
+    cd = custom_midpoint c, d
+    da = custom_midpoint d, a
+
+    center = custom_midpoint ab, cd
+
+    [
+      cSquare.new([a, ab, center, da]),
+      cSquare.new([ab, b, bc, center]),
+      cSquare.new([center, bc, c, cd]),
+      cSquare.new([da, center, cd, d])
+    ]
+
+  end
+
+
+#by me, using cartesian coord
+  def custom_midpoint p1, p2
+    x = [p1.x, p2.x].sum / 2
+    y = [p1.y, p2.y].sum / 2
+    z = [p1.z, p2.z].sum / 2
+
+    pt = cPoint.new(0,0,0)
+    pt.x = x
+    pt.y = y
+    pt.z = z
+
+    pt.to_spherical
+    pt.to_projection
+
+#=begin
+    # replace on top of sphere
+    pt.tz = 1
+    pt.to_cartesien
+    pt.to_projection
+#=end
+    pt
+  end
+
+
+
+
+
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kernel.module_eval %q{
+def intersect a, a2
+  b = []
+
+  a.each do |v|
+    b << v if a2.include? v
+  end
+  b
+end
+
+def minus a, a2
+
+  b = []
+
+  a.each do |v|
+    b << v unless a2.include? v
+  end
+  b
+
+end
+
+
+
+def uniq a
+  b = []
+
+
+  a.each do |v|
+    b << v unless b.include?(v)
+  end
+  b
+
+end
+}
+
+cShape = Class.new do
+
+
+  def self.create triangles
+
+    working_triangles = triangles.dup
+    f_triangle = working_triangles.shift
+    similar_points = working_triangles.map(&:points).reduce(f_triangle.points){|acc, points| acc = intersect(acc, points)}
+
+    center_point = similar_points.first
+
+    points = minus(uniq(triangles.map(&:points).flatten), [center_point])
+
+    triangles.each{|t| t.in_a_shape = true}
+
+    new triangles, points, center_point
+  end
+
+
+
+
+
+
+
+
+
+
+  attr_accessor :triangles, :points, :center_point
+  def initialize triangles, points, center_point
+    @triangles = triangles
+    @points = points
+    @center_point = center_point
+  end
+
+
+
+  def ordered_points
+    ordered = []
+
+    working_triangles = triangles.dup
+    current_tri = working_triangles.shift
+    ordered << minus(current_tri.points, [center_point])
+
+    (points.size - 1).times do
+      next_tri = current_tri.find_near(working_triangles).first
+      ordered << minus(next_tri.points, current_tri.points)
+      working_triangles = minus(working_triangles, [next_tri])
+      current_tri = next_tri
+    end
+
+    ordered.flatten
+  end
+
+
+  def to_svg
+    "<path d='#{ beautifull_svg_path }' fill='transparent' stroke='blue' stroke-width='1' />".html_safe
+  end
+
+  def svg_path
+    "M " << points.map{ |pt| "#{pt.px + 132} #{pt.py + 132}" }.join(" L ") << " Z" #le +132 est là pour center le dessin
+  end
+  def beautifull_svg_path
+    "M " << ordered_points.map{ |pt| "#{pt.px + 132} #{pt.py + 132}" }.join(" L ") << " Z" #le +132 est là pour center le dessin
+  end
+
+
+
+
+
+
+  def find_near p_triangles
+
+    working_triangles = minus(p_triangles, triangles)
+
+    near_triangles = triangles.map{ |self_t| self_t.find_near(working_triangles) }.flatten
+
+    near_points = minus(uniq(near_triangles.map(&:points).flatten), points)
+
+  end
+
+end
+
+
+cTriangle.cPoint = cPoint
+cSquare.cPoint = cPoint
+
+
+north_pole = cPoint.new(0, 0, 1)
+south_pole = cPoint.new(Math::PI, 0, 1)
+
+
+faces = 4
+
+pts = []
+
+faces.times do |i|
+  pt = cPoint.new(Math::PI/2, i*2*Math::PI/faces, 1)
+  pts << pt
+
+end
+
+
+points = [north_pole, south_pole] + pts
+
+
+
+
+triangles = []
+faces.times do |i|
+
+  p1 = pts[i]
+  p2 = pts[(i+1)%faces]
+
+
+  triangles << cTriangle.new([north_pole, p1, p2])
+  triangles << cTriangle.new([south_pole, p1, p2])
+
+end
+
+
+
+
+
+
+#triangles = triangles.map(&:divide).flatten
+
+
+
+
+%>
+
+<style media="screen">
+  .planet{
+    background-color: rgba(255, 255, 255, .3);
+
+    height: 264px;
+    width: 264px;
+    position: relative;
+
+    transform-style: preserve-3d;
+    transform: rotateY(15deg) rotateX(-15deg) rotateZ(-4deg);
+  }
+
+  .planet .point{
+    position: absolute;
+    left: 120px;
+    top: 120px;
+    height: 22px;
+    width: 22px;
+    background-color: #B62B4F;
+  }
+
+
+
+
+  .planet .triangle{
+    position: absolute;
+    left: 130px;
+    top: 130px;
+    height: 0px;
+    width: 0px;
+
+    border: 10px solid transparent;
+    border-bottom: 10px solid blue;
+    border-top-width: 0;
+  }
+</style>
+
+
+
+<style media="screen">
+  svg{ height: 300px; width: 300px }
+  svg path{ transition: all .3s ease; }
+  svg path:hover{ fill: blue }
+</style>
+
+<!--
+<hr>
+<h2>squares</h2>
+
+-->
+<%
+#binding.pry
+
+a = Math::acos(1/Math::sqrt(3)) # I take a point w/ cartesian to [1,1,1], calculate the rx (wich is the only one interesting here, and approx 0.955)
+
+sq_points = [
+  cPoint.new(a, 0*Math::PI/2, 1),
+  cPoint.new(a, 1*Math::PI/2, 1),
+  cPoint.new(a, 2*Math::PI/2, 1),
+  cPoint.new(a, 3*Math::PI/2, 1),
+  cPoint.new(Math::PI - a, 0*Math::PI/2, 1),
+  cPoint.new(Math::PI - a, 1*Math::PI/2, 1),
+  cPoint.new(Math::PI - a, 2*Math::PI/2, 1),
+  cPoint.new(Math::PI - a, 3*Math::PI/2, 1),
+]
+
+squares = [
+  cSquare.new([0, 1, 2, 3].map{|i| sq_points[i] }),
+  cSquare.new([0, 1, 5, 4].map{|i| sq_points[i] }),
+  cSquare.new([1, 2, 6, 5].map{|i| sq_points[i] }),
+  cSquare.new([2, 3, 7, 6].map{|i| sq_points[i] }),
+  cSquare.new([3, 0, 4, 7].map{|i| sq_points[i] }),
+  cSquare.new([4, 5, 6, 7].map{|i| sq_points[i] }),
+]
+
+ %>
+
+
+<!--
+<div class="planet">
+  <% squares.each do |square| %>
+  <%= square.to_css_3d %>
+  <% end %>
+</div>
+
+
+-->
+
+
+
+
+
+
+
+
+
+<hr>
+<h2>JS square</h2>
+
+
+<%
+
+squares_js = squares.dup
+
+2.times{ squares_js = squares_js.map(&:divide).flatten }
+
+ %>
+
+
+<style media="screen">
+  span.btn{
+    padding: 0;
+    cursor: pointer;
+  }
+
+  span.btn.enabled{
+    background-color: limegreen;
+  }
+
+  span.btn.disabled{
+    background-color: firebrick;
+  }
+
+  #js_svg{
+    margin-right: 1em;
+  }
+
+  #js_svg path{
+    fill: rgba(0,0,0, .5)
+  }
+
+  #js_svg path:hover{
+    fill: blue
+  }
+</style>
+
+
+<table>
+  <tr>
+    <td>
+
+
+
+
+
+<svg id="js_svg" viewBox = "0 0 300 300" version = "1.1">
+  <% squares_js.each do |square| %>
+    <%= square.to_svg_and_js %>
+  <% end %>
+</svg>
+<br>
+
+<p id="perf">
+  Rotation Performance : <span></span>ms
+</p>
+
+</td><td>
+
+
+<pre>
+       <span class="btn disabled" id="RY">Y axis</span>
+       ^
+       |
+       |
+       |
+<span class="btn disabled" id="RZ">Z axis</span> o-----> <span class="btn disabled" id="RX">X axis</span>
+
+<i><small>Click to toggle rotation</small></i>
+</pre>
+
+</td>
+</tr>
+</table>
+
+<script charset="utf-8">
+
+  // from internet cause JS is shit
+  String.prototype.deleteAt = function (index, length) {
+    if(typeof(length)==='undefined') length = 1;
+return this.substr(0, index) + this.substr(index + length);
+}
+
+
+
+
+  var squares = [<%= squares_js.map{ |square| square.to_js }.join(", ").html_safe %>];
+
+
+
+  function rotateX(point, rad){
+
+    var nx = 1*point.x + 0*point.y + 0*point.z
+    var ny = 0*point.x + Math.cos(rad)*point.y - Math.sin(rad)*point.z
+    var nz = 0*point.x + Math.sin(rad)*point.y + Math.cos(rad)*point.z
+
+    point.x = nx
+    point.y = ny
+    point.z = nz
+
+  };
+
+  function rotateZ(point, rad){
+
+    var nx = Math.cos(rad)*point.x - Math.sin(rad)*point.y + 0*point.z
+    var ny = Math.sin(rad)*point.x + Math.cos(rad)*point.y + 0*point.z
+    var nz = 0*point.x + 0*point.y + 1*point.z
+
+    point.x = nx
+    point.y = ny
+    point.z = nz
+
+  };
+
+
+  function rotateY(point, rad){
+
+    var nx = Math.cos(rad)*point.x + 0*point.y + Math.sin(rad)*point.z
+    var ny = 0*point.x + 1*point.y + 0*point.z
+    var nz = -Math.sin(rad)*point.x + 0*point.y + Math.cos(rad)*point.z
+
+    point.x = nx
+    point.y = ny
+    point.z = nz
+
+  };
+
+
+  function rotateSquare(axe, square, rad){
+
+    square.points.forEach(function(point){
+      window["rotate"+axe](point, rad);
+    })
+
+  }
+
+  function squareAvgZ(square){
+
+
+    var acc_z = 0
+
+    square.points.forEach(function(point){
+      acc_z = acc_z + point.z;
+    })
+
+    square.avg_z = acc_z/square.points.length
+  }
+
+  squares.forEach(function(square){
+    squareAvgZ(square)
+  })
+
+
+  function rotateSquares(axe, squares, rad){
+
+    squares.forEach(function(square){
+      rotateSquare(axe, square, rad);
+      squareAvgZ(square)
+    })
+
+  }
+
+  function rotateSquaresX(squares, rad){
+    rotateSquares("X", squares, rad)
+
+  }
+
+  function rotateSquaresY(squares, rad){
+    rotateSquares("Y", squares, rad)
+
+  }
+
+  function rotateSquaresZ(squares, rad){
+    rotateSquares("Z", squares, rad)
+
+  }
+
+
+
+  function projection2d(point){
+
+    var perspective = 264;
+
+    var camera_z = point.z + perspective;
+    var perspective_ratio = (perspective / camera_z)
+
+    // perspective_ratio = 1 // to match with ruby, infinite perspective
+
+    var px = point.x * perspective_ratio
+    var py = point.y * perspective_ratio
+
+    return {px: px, py: py}
+  };
+
+  function squarePath(square){
+
+    var path = "M "
+
+    square.points.forEach(function(point){
+      var projection_points = projection2d(point)
+      path = path + " L " + (projection_points.px + 132) + " " + (projection_points.py + 132)
+    })
+
+
+    path = path.deleteAt(2, 3)
+
+    path = path + " Z"
+
+    return path
+  }
+
+  function redrawSquare(square){
+    var dom_path = $("#js_svg [object_id=" + square.id + "]")
+    var new_d = squarePath(square)
+
+    dom_path.prependTo("#js_svg")
+    dom_path.attr("d", new_d)
+  }
+
+  function sortSquares(squares){
+    squares = squares.sort(function(a, b){
+      return a.avg_z-b.avg_z
+    })
+  }
+
+
+  var rx = false;
+  var ry = false;
+  var rz = false;
+  var rad = 0.01;
+
+  function rotationAnimation(squares){
+    if(rx == true) rotateSquaresX(squares, rad)
+    if(ry == true) rotateSquaresY(squares, rad)
+    if(rz == true) rotateSquaresZ(squares, rad)
+
+    if(rx == true || ry == true || rz == true){
+      sortSquares(squares)
+      squares.forEach(function(square){
+        redrawSquare(square);
+      })
+    }
+  }
+
+  window.setInterval(function(){
+    var start = window.performance.now();
+    rotationAnimation(squares)
+    var end = window.performance.now();
+    var time = Math.round(end - start);
+
+    $("#perf span").text(time)
+  }, 40);
+
+
+  $("#RX").click(function(){
+    var that = $(this)
+    if(that.hasClass("enabled")){
+      that.removeClass("enabled")
+      that.addClass("disabled")
+      rx = false
+    }else{
+      that.addClass("enabled")
+      that.removeClass("disabled")
+      rx = true
+    }
+  })
+
+  $("#RY").click(function(){
+    var that = $(this)
+    if(that.hasClass("enabled")){
+      that.removeClass("enabled")
+      that.addClass("disabled")
+      ry = false
+    }else{
+      that.addClass("enabled")
+      that.removeClass("disabled")
+      ry = true
+    }
+  })
+
+  $("#RZ").click(function(){
+    var that = $(this)
+    if(that.hasClass("enabled")){
+      that.removeClass("enabled")
+      that.addClass("disabled")
+      rz = false
+    }else{
+      that.addClass("enabled")
+      that.removeClass("disabled")
+      rz = true
+    }
+  })
+
+
+
+  // pts = points.select{|pt| pt.z >= 0}
+  // "M " << pts.map{ |p| "#{p.x + 132} #{p.y + 132}" }.join(" L ") << " Z"
+
+
+</script>
+
+<hr>
+
+
+
+
+
+
+
+
+
+<h2>squares</h2>
+
+
+
+
+<% 3.times do %>
+
+<svg viewBox = "0 0 300 300" version = "1.1">
+  <% squares.each do |square| %>
+    <%= square.to_svg %>
+  <% end %>
+
+</svg>
+<% squares = squares.map(&:divide).flatten
+%>
+
+<% end %>
+
+
+<%
+
+squares.each do |t|
+
+  t.points.each do |pt|
+    pt.tz = 1
+    pt.to_cartesien
+    pt.to_projection
+
+  end
+
+end
+
+ %>
+
+
+<svg viewBox = "0 0 300 300" version = "1.1">
+  <% squares.each do |square| %>
+    <%= square.to_svg %>
+  <% end %>
+</svg>
+
+
+<% square_points = squares.map(&:points).flatten.uniq %>
+
+<!--
+<h2>Y rotation</h2>
+<% 8.times do %>
+<svg viewBox = "0 0 300 300" version = "1.1">
+  <% squares.each do |square| %>
+    <%= square.to_svg %>
+  <% end %>
+</svg>
+
+<% square_points.map{ |p| p.rotateY!(Math::PI/16) } %>
+
+<% end %>
+
+
+
+
+<h2>Z rotation</h2>
+<% 8.times do %>
+
+
+<svg viewBox = "0 0 300 300" version = "1.1">
+  <% squares.each do |square| %>
+    <%= square.to_svg %>
+  <% end %>
+</svg>
+
+<% square_points.map{ |p| p.rotateZ!(Math::PI/16) } %>
+
+<% end %>
+
+
+
+
+<h2>X rotation</h2>
+<% 8.times do %>
+<svg viewBox = "0 0 300 300" version = "1.1">
+  <% squares.each do |square| %>
+    <%= square.to_svg %>
+  <% end %>
+</svg>
+
+<% square_points.map{ |p| p.rotateX!(Math::PI/16) } %>
+
+<% end %>
+
+
+-->
+
+
+
+
+<hr>
+
+
+<h2>triangles</h2>
+
+<% one_triangles = triangles.dup %>
+
+<% 3.times do %>
+
+<svg viewBox = "0 0 300 300" version = "1.1">
+  <% one_triangles.each do |triangle| %>
+    <%= triangle.to_svg %>
+  <% end %>
+
+</svg>
+
+<% one_triangles = one_triangles.map(&:divide).flatten
+%>
+
+<% end %>
+
+
+<%
+
+one_triangles.each do |t|
+
+  t.points.each do |pt|
+    pt.tz = 1
+    pt.to_cartesien
+    pt.to_projection
+
+  end
+
+end
+
+ %>
+
+
+<svg viewBox = "0 0 300 300" version = "1.1">
+  <% one_triangles.each do |triangle| %>
+    <%= triangle.to_svg %>
+  <% end %>
+</svg>
+
+
+<hr>
+
+<h2>hexagones divide - via triangles</h2>
+
+<%# triangles = [triangle_north_1] %>
+<%# triangles = [triangle_north_1, triangle_north_3, triangle_south_2, triangle_south_4] %>
+<%# triangles = [triangle_north_1, triangle_north_2, triangle_north_3, triangle_north_4] %>
+<%# triangles = [triangle_north_1, triangle_north_2, triangle_north_3, triangle_north_4, triangle_south_1, triangle_south_2, triangle_south_3, triangle_south_4].flatten
+%>
+<div id="ok" style="height:50px">
+
+</div>
+
+<script charset="utf-8">
+  $(document).on("mouseenter", "svg path", function(){
+    $("#ok").html($(this).attr("d"));
+  })
+</script>
+
+
+<%
+
+
+def triangles_around point, triangles
+  triangles.select{ |t| t.points.include? point }
+end
+
+north_triangles = triangles_around(north_pole, triangles)
+north_hex = cShape.create(north_triangles)
+
+hexs = [north_hex]
+
+
+ %>
+
+<% 3.times do %>
+
+
+<%
+
+
+
+=begin
+  north_hex = cShape.create_from_point(north_pole, triangles)
+
+  triangles_left = triangles - north_hex.triangles
+
+  hexs = [north_hex]
+  todo_hex = [north_hex]
+  while triangles_left.present?
+
+    centers = todo_hex.map{|hex| hex.centers_near(triangles_left) }.flatten.compact
+
+    centers = centers.delete_if{|pt| hexs.map(&:center_point).include? pt }
+
+todo_hex = []
+    while centers.present? && triangles_left.present?
+
+
+
+      center_pt = centers.shift
+      x = cShape.create_from_point(center_pt, triangles)
+
+      triangles_left -= x.triangles
+      hexs << x
+      todo_hex << x
+
+      centers = centers.delete_if{|pt| hexs.map(&:center_point).include? pt }
+
+    end
+
+  end
+=end
+
+
+
+ %>
+
+
+<svg viewBox = "0 0 300 300" version = "1.1">
+
+  <% hexs.each do |x| %>
+    <%= x.to_svg %>
+  <% end %>
+
+</svg>
+<!--
+<pre>
+  <% triangles.each do |t| %>
+
+    triangle :
+    <% t.points.each do |p| %> [<%= p.rx.round(2) %>, <%= p.ry.round(2) %>] <% end %>
+
+  <% end %>
+</pre>
+-->
+<% triangles = triangles.map(&:divide).flatten
+
+
+
+north_triangles = triangles_around(north_pole, triangles)
+north_hex = cShape.create(north_triangles)
+
+hexs = [north_hex]
+
+not_in_a_shape = triangles.select{|t| !t.in_a_shape }
+count_not = not_in_a_shape.size
+
+
+while not_in_a_shape.present? or count_not == not_in_a_shape.size
+  count_not = not_in_a_shape.size
+
+if not_in_a_shape.present?
+    near_points = uniq(hexs.map{ |hexa| hexa.find_near(not_in_a_shape) }.flatten)
+
+    near_points.each do |near_pt|
+      near_tri = triangles_around(near_pt, not_in_a_shape)
+      hexs << cShape.create(near_tri)
+    end
+end
+not_in_a_shape = triangles.select{|t| !t.in_a_shape }
+
+end
+
+
+%>
+
+<% end %>
+
+
+
+<%
+
+# many ways to divide
+# one - use "between points", my own custom method with spherical corrd
+# two - use "custom_midpoint", this use cartesian coord and force the "tz" at 1
+# three - use "custom_midpoint" but disable the force tz to 1, divide, then, only once at the end, force the tz at 1
+
+ %>
+
+<%
+
+triangles.each do |t|
+
+  t.points.each do |pt|
+    pt.tz = 1
+    pt.to_cartesien
+    pt.to_projection
+
+  end
+
+end
+
+ %>
+
+<%
+
+#  north_hex = cShape.create_from_point(north_pole, triangles)
+
+
+ %>
+
+
+<svg viewBox = "0 0 300 300" version = "1.1">
+
+<% hexs.each do |x| %>
+  <%= x.to_svg %>
+<% end %>
+
+</svg>
+
+
+<%
+
+points = triangles.map(&:points).flatten.uniq
+
+ %>
+
+<hr>
+
+
+
+<!--
+
+<h2>Y rotation</h2>
+<% 8.times do %>
+<svg viewBox = "0 0 300 300" version = "1.1">
+  <% triangles.each do |triangle| %>
+    <%= triangle.to_svg %>
+  <% end %>
+</svg>
+
+<% points.map{ |p| p.rotateY!(Math::PI/16) } %>
+
+<% end %>
+
+
+
+
+<h2>Z rotation</h2>
+<% 8.times do %>
+
+
+<svg viewBox = "0 0 300 300" version = "1.1">
+  <% triangles.each do |triangle| %>
+    <%= triangle.to_svg %>
+  <% end %>
+</svg>
+
+<% points.map{ |p| p.rotateZ!(Math::PI/16) } %>
+
+<% end %>
+
+
+
+
+<h2>X rotation</h2>
+<% 8.times do %>
+<svg viewBox = "0 0 300 300" version = "1.1">
+  <% triangles.each do |triangle| %>
+    <%= triangle.to_svg %>
+  <% end %>
+</svg>
+
+<% points.map{ |p| p.rotateX!(Math::PI/16) } %>
+
+<% end %>
+
+-->
+
+
+
+<hr>
+<!--
+<script src="http://cdnjs.cloudflare.com/ajax/libs/bonsai/0.4/bonsai.min.js"></script>
+<div id="movie"></div>
+<script>
+  bonsai.run(document.getElementById('movie'), {
+    code: function() {
+      new Rect(10, 10, 100, 100)
+        .addTo(stage)
+        .attr('fillColor', 'green');
+    },
+    width: 500,
+    height: 400
+  });
+</script>
+
+-->
+
+<hr>
+<!--
+<style media="screen">
+  <style>canvas { width: 400px; height: 400px }</style>
+</style>
+<script src="http://threejs.org/build/three.min.js"></script>
+		<script>
+			var scene = new THREE.Scene();
+var camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 1000 );
+
+var renderer = new THREE.WebGLRenderer();
+renderer.setSize( 200, 200 );
+document.body.appendChild( renderer.domElement );
+
+
+
+var geometry = new THREE.BoxGeometry(1,1,1);
+var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+var cube = new THREE.Mesh( geometry, material );
+scene.add( cube );
+
+camera.position.z = 5;
+
+
+
+function render() {
+	requestAnimationFrame(render);
+
+
+  cube.rotation.x += 0.1;
+cube.rotation.y += 0.1;
+
+
+renderer.render(scene, camera);
+
+
+}
+render();
+		</script>
+
+-->
+
+<hr>
+
+
+
+<%
+
+
+faces = 3
+hauteur = 2
+
+
+pps = [north_pole]
+
+phi = Math::PI/2/hauteur
+theta = 2*Math::PI/faces
+
+
+1.upto(hauteur) do |i|
+
+
+  rx = i*phi
+
+
+  (faces*i).times do |j|
+
+    ry = j*theta
+
+    pps = cPoint.new(rx, ry, 1)
+
+  end
+
+end
+
+
+
+#-------
+
+def create_tri p1, phi, theta
+
+
+
+  p2 = cPoint.new(p1.rx+phi, p1.ry+theta/2, 1)
+  p3 = cPoint.new(p1.rx+phi, p1.ry-theta/2, 1)
+
+
+  cTriangle.new([p1, p2, p3])
+
+end
+
+
+
+
+
+faces = 3
+lignes = 1
+
+phi = Math::PI/2/lignes
+
+
+
+1.upto(lignes) do
+
+
+
+end
+
+
+
+pps = [north_pole]
+
+
+
+
+
+
+
+%>

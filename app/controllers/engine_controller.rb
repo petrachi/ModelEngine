@@ -1,0 +1,2 @@
+class EngineController < ApplicationController
+end
