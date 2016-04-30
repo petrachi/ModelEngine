@@ -1,0 +1,50 @@
+<h1>Index</h1>
+
+<style media="screen">
+  body{
+    text-align: center;
+  }
+
+  h1:first-child{
+    background-color: black;
+    color: white;
+  }
+
+  h1{
+    margin: 0 0 4em 0;
+    padding: 1em;
+    border-bottom: 1px solid black;
+    background-color: white;
+    box-shadow: 0 36px 36px -24px black;
+  }
+
+  svg{
+    margin: 1em;
+    width: 40em;
+    border: 1px dotted black;
+  }
+</style>
+
+
+<svg id="square" viewBox = "-0.5 -0.5 1 1">
+  <%= Engine::Demo::SQUARE.to_svg %>
+</svg>
+<h1><%= link_to "Squares", "/squares" %></h1>
+
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <%= Engine::Demo::CUBE.to_svg perspective: 5.0 %>
+</svg>
+<h1><%= link_to "Cubes", "/cubes" %></h1>
+
+<svg id="triangle" viewBox = "-0.5 -0.5 1 1">
+</svg>
+<script type="text/javascript">
+  var origin = new Point(0.0, 0.0, 0.0);
+  var vector = new Vector(origin, 0.0, 0.0, 1.0);
+  var triangle = <%= Engine::Demo::TRIANGLE.to_js svg:'triangle' %>
+
+  triangle.animation().rotate(vector, TAU, 4000, {repeat: 'always'});
+  triangle.animation().start();
+</script>
+<h1><%= link_to "Triangles", "/triangles" %></h1>
