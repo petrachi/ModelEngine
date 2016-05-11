@@ -146,4 +146,18 @@
 </svg>
 <h1>Cube (x: 0.0, y: 0.0, z: -2.5, edge: 0.5, perspective: 5.0) + rotate x: 1.0, y: 1.0, z: 1.0, angle: TAU/16</h1>
 
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -2.5, edge: 0.5 %>
+  <% cube.scale x: 0.0, y: 0.0, z: -2.5, ratio: 2.0 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -2.5, edge: 0.5, perspective: 5.0) + scale x: 0., y: 0.0, z: -2.5, ratio: 2</h1>
+
+<svg id="cube" viewBox = "-0.5 -0.5 1 1">
+  <% cube = Engine::Solid::Builder.cube x: 0.0, y: 0.0, z: -2.5, edge: 0.5 %>
+  <% cube.scale x: 0.0, y: 0.0, z: -0.75, ratio: 2.0 %>
+  <%= cube.to_svg perspective: 5.0 %>
+</svg>
+<h1>Cube (x: 0.0, y: 0.0, z: -2.5, edge: 0.5, perspective: 5.0) + scale x: 0., y: 0.0, z: -0.75, ratio: 2</h1>
+
 <h1><%= link_to "Back to Update", "/update" %></h1>

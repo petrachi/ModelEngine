@@ -11,8 +11,6 @@ class Engine::Rendering::Solid::PolyhedronToSvg
   end
 
   def ordered_polygons
-    p polyhedron.polygons.first
-
     polyhedron.polygons.sort_by do |polygon|
       polygon.points.map(&:z).reduce(&:+) / polygon.points.size
     end

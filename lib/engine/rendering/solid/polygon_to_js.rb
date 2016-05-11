@@ -1,4 +1,4 @@
-class Engine::Rendering::Plan::PolygonToJs
+class Engine::Rendering::Solid::PolygonToJs
   attr_accessor :polygon, :svg
 
   def initialize polygon:, svg:
@@ -16,9 +16,5 @@ class Engine::Rendering::Plan::PolygonToJs
 
   def faces
     [(0..polygon.points.size-1).to_a]
-  end
-
-  def coordinates
-    polygon.points.map{ |point| {x: point.x, y: point.y, z: 0.0} }
   end
 end

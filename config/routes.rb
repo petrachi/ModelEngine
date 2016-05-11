@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   get 'squares' => 'engine#squares'
   get 'cubes' => 'engine#cubes'
   get 'triangles' => 'engine#triangles'
+  get 'octahedrons' => 'engine#octahedrons'
 
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".

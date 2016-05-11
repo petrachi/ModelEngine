@@ -6,6 +6,8 @@ class Engine::Solid::Vector
     @x = x
     @y = y
     @z = z
+
+    to_unit
   end
 
   def length
@@ -14,7 +16,7 @@ class Engine::Solid::Vector
 
   def to_unit
     vector_length = length
-    
+
     @x /= vector_length
     @y /= vector_length
     @z /= vector_length

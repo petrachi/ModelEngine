@@ -16,8 +16,6 @@ class Engine::Solid::Point
   end
 
   def rotate vector:, angle:
-    vector.to_unit
-
     sin = Math.sin angle / 2
     cos = Math.cos angle / 2
 
@@ -43,6 +41,17 @@ class Engine::Solid::Point
 
     self
   end
+
+  def scale x:, y:, z:, ratio:
+    translate x: -x, y: -y, z: -z
+
+    @x *= ratio
+    @y *= ratio
+    @z *= ratio
+
+    translate x: x, y: y, z: z
+  end
+
 
   def to_plan perspective:
     deformation = (z + perspective) / perspective

@@ -52,6 +52,19 @@
 </svg>
 <h1>Square (edge: 0.5, x: 0, y: 0) + rotate(angle: TAU/8, x: -0.25, y: -0.25)</h1>
 
+<svg id="square" viewBox = "-0.5 -0.5 1 1">
+  <% square = Engine::Plan::Builder.square edge: 0.45, x: 0.0, y: 0.0 %>
+  <% square.scale ratio: 2.0, x: 0.0, y: 0.0 %>
+  <%= square.to_svg %>
+</svg>
+<h1>Square (edge: 0.45, x: 0, y: 0) + scale ratio: 2.0, x: 0.0, y: 0.0</h1>
+
+<svg id="square" viewBox = "-0.5 -0.5 1 1">
+  <% square = Engine::Plan::Builder.square edge: 0.25, x: 0.0, y: 0.0 %>
+  <% square.scale ratio: 2.0, x: -0.125, y: -0.125 %>
+  <%= square.to_svg %>
+</svg>
+<h1>Square (edge: 0.25, x: 0, y: 0) + scale ratio: 2.0, x: -0.125, y: -0.125</h1>
 
 
 <h1><%= link_to "Back to Update", "/update" %></h1>

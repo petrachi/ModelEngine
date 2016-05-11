@@ -1,30 +1,34 @@
 class Engine::Solid::Polyhedron
-  attr_accessor :points, :polygons
+  attr_accessor :points, :faces, :polygons
 
-  def initialize points: nil, polygons:
+  def initialize points:, faces:
     @points = points
-    @polygons = polygons
-  end
-
-  def subset
-    if points
-      points
-    else
-      polygons
+    @faces = faces
+    @polygons = faces.map do |face|
+      Engine::Solid::Polygon.new points: face.map{ |index| points[index] }
     end
   end
 
-  def translate x:, y:, z:
-    subset.each{ |object| object.translate x: x, y: y, z: z }
+  def translate **options
+    points.each{ |point| object.translate **options }
     self
   end
 
-  def rotate vector:, angle:
-    subset.each{ |object| object.rotate vector: vector, angle: angle }
+  def rotate **options
+    points.each{ |point| object.rotate **options }
+    self
+  end
+
+  def scale **options
+    points.each{ |point| object.scale **options }
     self
   end
 
   def to_svg perspective: 1.0
     Engine::Rendering::Solid::PolyhedronToSvg.new(polyhedron: self, perspective: perspective).render
+  end
+
+  def to_js svg:
+    Engine::Rendering::Solid::PolyhedronToJs.new(polyhedron: self, svg: svg).render
   end
 end

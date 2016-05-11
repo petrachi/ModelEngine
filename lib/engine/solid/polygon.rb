@@ -5,17 +5,26 @@ class Engine::Solid::Polygon
     @points = points
   end
 
-  def translate x:, y:, z:
-    points.each{ |point| point.translate x: x, y: y, z: z }
+  def translate **options
+    points.each{ |point| point.translate **options }
     self
   end
 
-  def rotate vector:, angle:
-    points.each{ |point| point.rotate vector: vector, angle: angle }
+  def rotate **options
+    points.each{ |point| point.rotate **options }
+    self
+  end
+
+  def scale **options
+    points.each{ |point| point.scale **options }
     self
   end
 
   def to_svg perspective: 1.0
     Engine::Rendering::Solid::PolygonToSvg.new(polygon: self, perspective: perspective).render
+  end
+
+  def to_js svg:
+    Engine::Rendering::Solid::PolygonToJs.new(polygon: self, svg: svg).render
   end
 end

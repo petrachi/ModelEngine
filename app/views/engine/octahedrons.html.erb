@@ -1,0 +1,74 @@
+<style media="screen">
+  body{
+    text-align: center;
+  }
+
+  h1:not(:last-child){
+    margin-bottom: 4em;
+    padding-bottom: 1em;
+    border-bottom: 1px solid black;
+    background-color: white;
+    box-shadow: 0 36px 36px -24px black;
+  }
+
+  .deprecated{
+    color: grey;
+    text-decoration: line-through;
+  }
+
+  svg{
+    margin: 1em;
+    width: 40em;
+    border: 1px dotted black;
+  }
+</style>
+<h1><%= link_to "Back to Update", "/update" %></h1>
+
+<svg id="octahedron-1" viewBox = "-0.5 -0.5 1 1">
+  <% octahedron1 = Engine::Solid::Builder.octahedron x: 0.0, y: 0.0, z: 0.0, edge: 0.5 %>
+</svg>
+<div id="octahedron-1-controls">
+  <button id="play">play</button>
+  <button id="pause">pause</button>
+</div>
+<script type="text/javascript">
+  var origin = new Point(0.0, 0.0, 0.0);
+  var vector = new Vector(origin, 0.0, -1.0, 0.0);
+  vector.rotate(new Vector(origin, -0.25, 0.0, 0.25), TAU/24);
+  vector.draw(document.querySelector("#octahedron-1"));
+
+  var octahedron1 = <%= octahedron1.to_js svg: 'octahedron-1' %>
+  octahedron1.rotate(new Vector(origin, -0.25, 0.0, 0.25), TAU/24);
+  octahedron1.set();
+
+  octahedron1.animation().rotate(vector, TAU, 8000, {repeat: 'always'});
+  octahedron1.animation().start();
+</script>
+
+<h1>
+  Octahedron (x: 0.0, y: 0.0, z: 0.0, edge: 0.5) + rotate(origin, -0.25,0,0.25, TAU/24) + animate rotate(-along center to top vector-, TAU, 8000ms, always)
+</h1>
+
+<!-- <svg id="octahedron-2" viewBox = "-0.5 -0.5 1 1"> -->
+<svg id="octahedron-2" viewBox = "-1 -1 2 2">
+  <% octahedron2 = Engine::Solid::Builder.octahedron x: 0.0, y: 0.0, z: 0.0, edge: 0.5 %>
+</svg>
+<div id="octahedron-2-controls">
+  <button id="play">play</button>
+  <button id="pause">pause</button>
+</div>
+<script type="text/javascript">
+  <% 48.times do %>
+    var vector = new Vector(new Point(0,0,-0.75), (Math.random()/2) - 0.25, 1, (Math.random()/2) - 0.25);
+    var octahedron2 = <%= Engine::Solid::Builder.octahedron(x: 0.0 + rand(48)/100.0-0.25, y: 0.0 + rand(48)/100.0-0.25, z: 0.0 + rand(48)/100.0-0.25, edge: 0.5).to_js svg: 'octahedron-2' %>
+
+    octahedron2.animation().rotate(vector, TAU, 3000 - Math.random()*100, {repeat: 'always'});
+    octahedron2.animation().start();
+  <% end %>
+</script>
+
+<h1>
+  48 Octahedron (x: 0.0, y: 0.0, z: 0.0, edge: 0.5) + animate rotate(0,0,-0.75 -> 0,1,0, TAU, 3000ms, always)
+</h1>
+
+<h1><%= link_to "Back to Update", "/update" %></h1>

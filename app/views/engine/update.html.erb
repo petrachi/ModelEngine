@@ -48,3 +48,26 @@
   triangle.animation().start();
 </script>
 <h1><%= link_to "Triangles", "/triangles" %></h1>
+
+<svg id="octahedron" viewBox = "-0.5 -0.5 1 1">
+</svg>
+<script type="text/javascript">
+  var origin = new Point(0.0, 0.0, 0.0);
+  var vector = new Vector(origin, 0.0, -1.0, 0.0);
+  vector.rotate(new Vector(origin, -0.25, 0.0, 0.25), TAU/24);
+  vector.draw(document.querySelector("#octahedron"));
+
+  var octahedron = <%= Engine::Demo::OCTAHEDRON.to_js svg: 'octahedron' %>
+  octahedron.rotate(new Vector(origin, -0.25, 0.0, 0.25), TAU/24);
+  octahedron.set();
+
+  octahedron.animation().rotate(vector, TAU, 8000, {repeat: 'always'});
+  octahedron.animation().start();
+</script>
+<h1><%= link_to "Octahedrons", "/octahedrons" %></h1>
+
+
+<ul style="text-align: left;">
+  <li>Improve Speed: When drawing a polyhedron.js, reorder polygons only when they need to (Today, every time I draw() a polygon, I set its svg-path at the end of the svg. This implies unecessary DOM manipulation, as most of the time, the polygons are in the good order.)</li>
+  <li>Architecture: To allow a more flexible drawing.js, create a new class whose role whould be to create the svg-tag element, and maintain it. Then move all existing drawings to use this new class. I hope that this way, we will be able to easily make an irregular drawing for a specific object (like vectors, they use more than one svg-tag)</li>
+</ul>

@@ -9,13 +9,18 @@ class Engine::Plan::Polygon
     @points = points
   end
 
-  def translate x:, y:
-    points.each{ |point| point.translate x: x, y: y }
+  def translate **options
+    points.each{ |point| point.translate **options }
     self
   end
 
-  def rotate x:, y:, angle:
-    points.each{ |point| point.rotate x: x, y: y, angle: angle }
+  def rotate **options
+    points.each{ |point| point.rotate **options }
+    self
+  end
+
+  def scale **options
+    points.each{ |point| point.scale **options }
     self
   end
 

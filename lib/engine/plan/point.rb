@@ -33,6 +33,15 @@ class Engine::Plan::Point
     self
   end
 
+  def scale x:, y:, ratio:
+    translate x: -x, y: -y
+
+    @x *= ratio
+    @y *= ratio
+
+    translate x: x, y: y
+  end
+
   def copy
     self.class.new x: x, y: y
   end

@@ -162,4 +162,36 @@
 
 <h1>Triangle (x: -0.5, y: 0.0, edge: 0.0625) + JS[translate(0.25,0,0 - 1000ms - additive)] + start-stop-reset</h1>
 
+<svg id="triangle-9" viewBox = "-0.5 -0.5 1 1">
+  <% triangle9 = Engine::Plan::Builder.triangle x: -0.0, y: 0.0, edge: 0.25 %>
+</svg>
+<div id="triangle-9-controls">
+  <button id="start">start</button>
+  <button id="stop">stop</button>
+  <button id="reset">reset</button>
+</div>
+<script type="text/javascript">
+  var triangle9 = <%= triangle9.to_js svg:'triangle-9' %>
+
+  triangle9.animation().scale(0.0, 0.0, 0.0, 4, 2000);
+</script>
+
+<h1>Triangle (x: -0.0, y: 0.0, edge: 0.25) + JS[scale(0,0,0 - 4 - 1000ms)] + start-stop-reset</h1>
+
+<svg id="triangle-10" viewBox = "-0.5 -0.5 1 1">
+  <% triangle10 = Engine::Plan::Builder.triangle x: -0.0, y: 0.0, edge: 0.25 %>
+</svg>
+<div id="triangle-10-controls">
+  <button id="start">start</button>
+  <button id="stop">stop</button>
+  <button id="reset">reset</button>
+</div>
+<script type="text/javascript">
+  var triangle10 = <%= triangle10.to_js svg:'triangle-10' %>
+
+  triangle10.animation().scale(0.0, -0.14433756729740646, 0.0, 2.975, 2000);
+</script>
+
+<h1>Triangle (x: -0.0, y: 0.0, edge: 0.25) + JS[scale(0,-0.14433756729740646,0 - 2.975 - 1000ms)] + start-stop-reset</h1>
+
 <h1><%= link_to "Back to Update", "/update" %></h1>
